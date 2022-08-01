@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 
 
 // Register user
+// http://localhost:3002/api/auth/register
 export const register = async (req, res) => {
     try {
         const {username, password} = req.body;
@@ -37,6 +38,7 @@ export const register = async (req, res) => {
 };
 
 // Login user
+// http://localhost:3002/api/auth/login
 export const login = async (req, res) => {
     try {
         const {username, password} = req.body;
@@ -57,7 +59,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const token = jwt.sing(
+        const token = jwt.sign(
             {
                 id: user._id,
             },
@@ -67,16 +69,42 @@ export const login = async (req, res) => {
             }
         );
 
+        res.json({
+            token, user, message: "Вы вошли в систему."
+        })
+
     } catch (error) {
         res.json({message: "Ошибка при авторизации"});
     }
 };
 
 // Get me
+// http://localhost:3002/api/auth/me
 export const getMe = async (req, res) => {
     try {
+        const user = await User.findById(req.userId)
+
+        if (!user) {
+            return res.json({
+                message: "Такого юзера не существует"
+            });
+        }
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "30d"
+            }
+        );
+
+        res.json({
+            user, token
+        })
 
     } catch (error) {
-
+        res.json({message: "Нет доступа"});
     }
 };
