@@ -3,7 +3,7 @@ import path, {dirname} from "path"
 import {fileURLToPath} from "url"
 import Post from "../models/Post.js";
 
-
+// Create post
 export const createPost = async (req, res) => {
     try {
         const {title, text} = req.body;
@@ -44,6 +44,39 @@ export const createPost = async (req, res) => {
         })
 
         return res.json(newPostWithoutImage)
+
+    } catch (error) {
+        res.json({message: "Что-то пошло не так."});
+    }
+};
+
+// Get all posts
+export const getAllPosts = async (req, res) => {
+    try {
+
+        const posts = await Post.find().sort("-createdAt")
+        const popularPosts = await Post.find().limit(5).sort("-views")
+
+        if (!posts) {
+            return res.json({message: "Постов нет"})
+        }
+
+        res.json({posts, popularPosts})
+
+    } catch (error) {
+        res.json({message: "Что-то пошло не так."});
+    }
+};
+
+// Get posts by id
+export const getPostById = async (req, res) => {
+    try {
+
+        const post = await Post.findByIdAndUpdate(req.params.id, {
+            $inc: {views: 1},
+        })
+
+        res.json(post)
 
     } catch (error) {
         res.json({message: "Что-то пошло не так."});
